@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>American Road Trip Trivia Game</title>
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --panel: #fffaf2;
+      --ink: #1f2937;
+      --accent: #c2410c;
+      --accent-2: #0f766e;
+      --border: #e5d3bd;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #f9f5ef, #efe2cf);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .game {
+      width: min(760px, 100%);
+      background: var(--panel);
+      border: 3px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 42px);
+      color: var(--accent);
+      text-align: center;
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      text-align: center;
+      color: #57534e;
+      font-size: 1rem;
+    }
+
+    .display {
+      background: white;
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #78716c;
+      font-weight: bold;
+    }
+
+    .question {
+      font-size: clamp(24px, 3.2vw, 36px);
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .answer {
+      font-size: clamp(20px, 2.7vw, 30px);
+      line-height: 1.4;
+      color: var(--accent-2);
+      font-weight: 700;
+      display: none;
+      border-top: 2px solid #e7e5e4;
+      padding-top: 16px;
+    }
+
+    .answer.visible {
+      display: block;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+
+    .shuffle-btn {
+      background: var(--accent);
+      color: white;
+    }
+
+    .reveal-btn {
+      background: var(--accent-2);
+      color: white;
+    }
+
+    .count {
+      margin-top: 18px;
+      text-align: center;
+      color: #57534e;
+      font-size: 0.95rem;
+    }
+
+    .footer {
+      margin-top: 16px;
+      text-align: center;
+      color: #78716c;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 560px) {
+      .game { padding: 20px; }
+      .display { min-height: 260px; }
+      button { width: 100%; }
+      .controls { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <h1>Great American Road Trips</h1>
+    <p class="subtitle">Visitor Trivia Game</p>
+
+    <section class="display">
+      <div class="label">Question</div>
+      <div id="question" class="question">Press “Shuffle Question” to begin.</div>
+
+      <div class="label">Answer</div>
+      <div id="answer" class="answer">The answer will appear here.</div>
+    </section>
+
+    <div class="controls">
+      <button class="shuffle-btn" id="shuffleBtn">Shuffle Question</button>
+      <button class="reveal-btn" id="revealBtn">Reveal Answer</button>
+    </div>
+
+    <div class="count" id="count">20 questions loaded</div>
+    <div class="footer">Offline single-file HTML trivia game</div>
+  </main>
+
+  <script>
+    const trivia = [
+      {
+        question: "What is the most famous American road trip route?",
+        answer: "Route 66."
+      },
+      {
+        question: "Which U.S. highway is the longest in the United States Highway System?",
+        answer: "U.S. Route 20."
+      },
+      {
+        question: "What is the longest Interstate Highway in the United States?",
+        answer: "Interstate 90 (I-90)."
+      },
+      {
+        question: "What is one of the shortest signed Interstates in the U.S.?",
+        answer: "Interstate 878 (I-878) in New York."
+      },
+      {
+        question: "Which California route is famous for dramatic ocean views and Big Sur?",
+        answer: "The Pacific Coast Highway, also known as Highway 1."
+      },
+      {
+        question: "What was the first transcontinental road designed for automobiles in the United States?",
+        answer: "The Lincoln Highway."
+      },
+      {
+        question: "Which scenic drive is famous for mountain views and fall colors in the eastern U.S.?",
+        answer: "The Blue Ridge Parkway."
+      },
+      {
+        question: "Which desert road is known for iconic views of Monument Valley?",
+        answer: "Highway 163."
+      },
+      {
+        question: "Which historic route follows an ancient travel corridor through the South?",
+        answer: "The Natchez Trace Parkway."
+      },
+      {
+        question: "Route 66 originally connected which two places?",
+        answer: "Chicago, Illinois and Santa Monica, California."
+      },
+      {
+        question: "Which route is especially known for coastal cliffs, beaches, and ocean scenery?",
+        answer: "The Pacific Coast Highway."
+      },
+      {
+        question: "Which route is often considered one of the most visited scenic drives in America?",
+        answer: "The Blue Ridge Parkway."
+      },
+      {
+        question: "What kind of landscape is Monument Valley most famous for?",
+        answer: "Red rock desert scenery."
+      },
+      {
+        question: "Which famous route became a symbol of freedom, migration, and adventure?",
+        answer: "Route 66."
+      },
+      {
+        question: "Which major Interstate stretches from Seattle to Boston?",
+        answer: "Interstate 90."
+      },
+      {
+        question: "What makes cross-country American road trips special?",
+        answer: "They pass through many different landscapes, cultures, and regions."
+      },
+      {
+        question: "Which route would you choose for Appalachian mountain scenery?",
+        answer: "The Blue Ridge Parkway."
+      },
+      {
+        question: "Which route would you choose for a classic historic highway experience across the country?",
+        answer: "The Lincoln Highway."
+      },
+      {
+        question: "Which road trip route is best known for classic diners, motels, and roadside Americana?",
+        answer: "Route 66."
+      },
+      {
+        question: "Which road trip route is best known for ocean views along California’s coastline?",
+        answer: "The Pacific Coast Highway."
+      }
+    ];
+
+    const questionEl = document.getElementById('question');
+    const answerEl = document.getElementById('answer');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const revealBtn = document.getElementById('revealBtn');
+    const countEl = document.getElementById('count');
+
+    let currentIndex = null;
+
+    function pickRandomQuestion() {
+      if (trivia.length === 0) return;
+
+      let nextIndex = Math.floor(Math.random() * trivia.length);
+      if (trivia.length > 1) {
+        while (nextIndex === currentIndex) {
+          nextIndex = Math.floor(Math.random() * trivia.length);
+        }
+      }
+
+      currentIndex = nextIndex;
+      questionEl.textContent = trivia[currentIndex].question;
+      answerEl.textContent = trivia[currentIndex].answer;
+      answerEl.classList.remove('visible');
+    }
+
+    function revealAnswer() {
+      if (currentIndex === null) {
+        pickRandomQuestion();
+      }
+      answerEl.classList.add('visible');
+    }
+
+    shuffleBtn.addEventListener('click', pickRandomQuestion);
+    revealBtn.addEventListener('click', revealAnswer);
+
+    countEl.textContent = `${trivia.length} questions loaded`;
+  </script>
+</body>
+</html>
