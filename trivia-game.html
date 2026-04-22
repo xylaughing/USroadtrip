@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visitor Trivia Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: linear-gradient(135deg, #5b7cfa 0%, #7c4dff 100%);
+    }
+
+    .game {
+      width: 100%;
+      max-width: 720px;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+      padding: 32px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #1f2937;
+      margin-bottom: 8px;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 22px;
+      font-size: 0.95rem;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .card {
+      background: #f8fafc;
+      border: 2px solid #e5e7eb;
+      border-radius: 18px;
+      padding: 28px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .category {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #6d28d9;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .question {
+      font-size: 1.4rem;
+      line-height: 1.5;
+      color: #111827;
+      font-weight: 600;
+    }
+
+    .answer {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 14px;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: none;
+    }
+
+    .answer.visible {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 14px 22px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    .primary {
+      background: linear-gradient(135deg, #5b7cfa 0%, #7c4dff 100%);
+      color: white;
+      box-shadow: 0 10px 24px rgba(91, 124, 250, 0.28);
+    }
+
+    .secondary {
+      background: #16a34a;
+      color: white;
+      box-shadow: 0 10px 24px rgba(22, 163, 74, 0.22);
+    }
+
+    .secondary:disabled {
+      background: #9ca3af;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .footer {
+      margin-top: 18px;
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .game {
+        padding: 22px;
+      }
+
+      .question {
+        font-size: 1.15rem;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .controls {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <h1>🎯 Visitor Trivia Game</h1>
+    <p class="subtitle">Offline single-file HTML version — no internet required.</p>
+
+    <div class="status-row">
+      <span class="pill" id="progress">Question 0 / 20</span>
+      <span class="pill" id="remaining">20 remaining</span>
+    </div>
+
+    <section class="card">
+      <div class="category" id="category">Ready</div>
+      <div class="question" id="question">Press “Shuffle Question” to show a random trivia question.</div>
+      <div class="answer" id="answer"></div>
+    </section>
+
+    <div class="controls">
+      <button class="primary" id="shuffleBtn">🎲 Shuffle Question</button>
+      <button class="secondary" id="answerBtn" disabled>👁 Reveal Answer</button>
+    </div>
+
+    <div class="footer">Questions will not repeat until all 20 have been used.</div>
+  </main>
+
+  <script>
+    const questions = [
+      { category: "Science", question: "What is the chemical symbol for gold?", answer: "Au" },
+      { category: "Geography", question: "What is the capital city of Japan?", answer: "Tokyo" },
+      { category: "History", question: "In which year did the Titanic sink?", answer: "1912" },
+      { category: "Nature", question: "What is the largest mammal in the world?", answer: "Blue whale" },
+      { category: "Space", question: "Which planet is known as the Red Planet?", answer: "Mars" },
+      { category: "Literature", question: "Who wrote 'Romeo and Juliet'?", answer: "William Shakespeare" },
+      { category: "Sports", question: "How many players are on a standard soccer team on the field?", answer: "11" },
+      { category: "Science", question: "What gas do plants absorb from the air?", answer: "Carbon dioxide" },
+      { category: "Geography", question: "What is the longest river in the world?", answer: "The Nile River" },
+      { category: "History", question: "Who was the first person to walk on the moon?", answer: "Neil Armstrong" },
+      { category: "Art", question: "Who painted the Mona Lisa?", answer: "Leonardo da Vinci" },
+      { category: "Nature", question: "What is a baby kangaroo called?", answer: "A joey" },
+      { category: "Science", question: "How many bones are in the adult human body?", answer: "206" },
+      { category: "Music", question: "Which band recorded the album 'Abbey Road'?", answer: "The Beatles" },
+      { category: "Geography", question: "Which is the smallest country in the world?", answer: "Vatican City" },
+      { category: "History", question: "Which ancient wonder still stands today?", answer: "The Great Pyramid of Giza" },
+      { category: "Food", question: "Sushi is a cuisine that originated in which country?", answer: "Japan" },
+      { category: "Technology", question: "What does 'HTML' stand for?", answer: "HyperText Markup Language" },
+      { category: "Animals", question: "What is a group of lions called?", answer: "A pride" },
+      { category: "Sports", question: "In which sport would you perform a slam dunk?", answer: "Basketball" }
+    ];
+
+    const questionEl = document.getElementById("question");
+    const answerEl = document.getElementById("answer");
+    const categoryEl = document.getElementById("category");
+    const progressEl = document.getElementById("progress");
+    const remainingEl = document.getElementById("remaining");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const answerBtn = document.getElementById("answerBtn");
+
+    let remainingPool = [...questions];
+    let currentQuestion = null;
+    let shownCount = 0;
+
+    function updateStatus() {
+      progressEl.textContent = `Question ${shownCount} / ${questions.length}`;
+      remainingEl.textContent = `${remainingPool.length} remaining`;
+    }
+
+    function reshufflePoolIfNeeded() {
+      if (remainingPool.length === 0) {
+        remainingPool = [...questions];
+        shownCount = 0;
+      }
+    }
+
+    function shuffleQuestion() {
+      reshufflePoolIfNeeded();
+
+      const index = Math.floor(Math.random() * remainingPool.length);
+      currentQuestion = remainingPool.splice(index, 1)[0];
+      shownCount += 1;
+
+      categoryEl.textContent = currentQuestion.category;
+      questionEl.textContent = currentQuestion.question;
+      answerEl.textContent = currentQuestion.answer;
+      answerEl.classList.remove("visible");
+      answerBtn.disabled = false;
+
+      updateStatus();
+    }
+
+    function revealAnswer() {
+      if (!currentQuestion) return;
+      answerEl.classList.add("visible");
+    }
+
+    shuffleBtn.addEventListener("click", shuffleQuestion);
+    answerBtn.addEventListener("click", revealAnswer);
+
+    updateStatus();
+  </script>
+</body>
+</html>
